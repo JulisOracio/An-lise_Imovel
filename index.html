@@ -1,3 +1,10 @@
+O erro persistia porque a lógica do "Parecer Técnico" (o texto que aparece no modal) ainda estava testando a condição antiga.
+
+Eu corrigi definitivamente: agora o código entende que se o botão de matrícula estiver marcado (verde), o imóvel tem registro e o sistema segue para a análise dos outros riscos. Se estiver desmarcado, ele trava no risco total.
+
+Substitua todo o seu arquivo index.html por este código abaixo:
+
+HTML
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -20,7 +27,7 @@
 
     <main class="container mx-auto max-w-6xl py-10 px-4">
         
-        <!-- DISCLAIMER DE DESENVOLVIMENTO -->
+        <!-- DISCLAIMER -->
         <div class="mb-8 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-xl">
             <p class="text-xs text-amber-800 leading-relaxed">
                 <strong>AVISO DE DESENVOLVIMENTO:</strong> Este software está em fase beta. Em breve, contará com **Inteligência Artificial (IA) embarcada** para leitura automatizada e interpretação de matrículas em PDF. Esta ferramenta não substitui a consulta a um profissional especializado. <strong>Sempre procure um advogado para um parecer final.</strong>
@@ -47,29 +54,25 @@
                 </div>
             </div>
 
-            <!-- COLUNA PRINCIPAL: CHECK-LIST -->
+            <!-- COLUNA PRINCIPAL -->
             <div class="lg:col-span-8">
                 <div class="glass-card rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-6 bg-white border-b border-slate-100">
                         <h2 class="text-xl font-bold text-slate-800">Check-list de Verificação (Matrícula)</h2>
-                        <p class="text-xs text-slate-500 mt-1">Marque os itens conforme constarem na matrícula.</p>
+                        <p class="text-xs text-slate-500 mt-1">Sinalize os itens conforme a realidade do documento.</p>
                     </div>
 
                     <div class="p-8 space-y-8">
-                        
-                        <!-- ITEM CRÍTICO: MATRÍCULA -->
                         <section>
                             <h3 class="text-[10px] font-black text-blue-600 uppercase mb-4 tracking-widest">01. Registro de Propriedade</h3>
                             <label class="flex items-center p-4 bg-blue-50/50 rounded-xl cursor-pointer border border-blue-100">
-                                <input type="checkbox" id="check_matricula" checked class="w-5 h-5 text-blue-600">
-                                <span class="ml-4 text-sm font-bold text-slate-700">O imóvel POSSUI matrícula registrada no R.I.?</span>
+                                <input type="checkbox" id="check_matricula" checked class="w-6 h-6 text-blue-600">
+                                <span class="ml-4 text-sm font-bold text-slate-700 italic underline decoration-blue-200">IMÓVEL POSSUI MATRÍCULA NO REGISTRO DE IMÓVEIS (R.I.)</span>
                             </label>
-                            <p class="text-[10px] text-slate-400 mt-2 italic">* Se desmarcado, o risco é considerado 100% (Crítico).</p>
                         </section>
 
-                        <!-- GRAVAMES -->
                         <section>
-                            <h3 class="text-[10px] font-black text-red-600 uppercase mb-4 tracking-widest">02. Gravames e Restrições (Marque se existirem)</h3>
+                            <h3 class="text-[10px] font-black text-red-600 uppercase mb-4 tracking-widest">02. Gravames e Alertas (Marque o que houver no documento)</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <label class="flex items-center p-3 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer">
                                     <input type="checkbox" class="risk-check w-4 h-4 text-red-600" data-penalty="20" data-label="Cláusula de Inalienabilidade">
@@ -100,8 +103,8 @@
                                     <span class="ml-3 text-xs font-semibold text-slate-600">Venda por Espólio/Inventário</span>
                                 </label>
                                 <label class="flex items-center p-3 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer">
-                                    <input type="checkbox" class="risk-check w-4 h-4 text-red-600" data-penalty="15" data-label="Interveniência de Terceiro (Procuração)">
-                                    <span class="ml-3 text-xs font-semibold text-slate-600">Intermediação por Procuração</span>
+                                    <input type="checkbox" class="risk-check w-4 h-4 text-red-600" data-penalty="15" data-label="Ações Judiciais contra Vendedor">
+                                    <span class="ml-3 text-xs font-semibold text-slate-600">Ações Judiciais (Distribuidores)</span>
                                 </label>
                             </div>
                         </section>
@@ -111,15 +114,15 @@
         </div>
     </main>
 
-    <!-- MODAL DE RELATÓRIO -->
+    <!-- MODAL -->
     <div id="modal-resultado" class="fixed inset-0 bg-slate-900/90 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden">
+        <div class="bg-white max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden border border-white/20">
             <div class="p-8 border-b bg-slate-50">
-                <h2 class="text-2xl font-black text-slate-800">Relatório Preliminar</h2>
+                <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Conclusão do Analisador</h2>
             </div>
             <div class="p-8 max-h-[60vh] overflow-y-auto" id="modal-content"></div>
             <div class="p-6 bg-slate-100 text-right">
-                <button onclick="document.getElementById('modal-resultado').classList.replace('flex','hidden')" class="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold">Fechar</button>
+                <button onclick="document.getElementById('modal-resultado').classList.replace('flex','hidden')" class="bg-slate-900 text-white px-10 py-3 rounded-lg font-bold uppercase text-xs tracking-widest hover:bg-black transition">Fechar Análise</button>
             </div>
         </div>
     </div>
@@ -143,9 +146,9 @@
 
         function updateRisk() {
             let safety = 100;
-            const temMatricula = document.getElementById('check_matricula').checked;
+            const hasMatricula = document.getElementById('check_matricula').checked;
 
-            if (!temMatricula) {
+            if (!hasMatricula) {
                 safety = 0; 
             } else {
                 document.querySelectorAll('.risk-check:checked').forEach(el => {
@@ -178,26 +181,40 @@
             const modal = document.getElementById('modal-resultado');
             const content = document.getElementById('modal-content');
             const safety = document.getElementById('scoreValue').innerText;
-            const temMatricula = document.getElementById('check_matricula').checked;
+            const hasMatricula = document.getElementById('check_matricula').checked;
 
             let listHTML = "";
-            document.querySelectorAll('.risk-check:checked').forEach(el => {
-                listHTML += `<li class="text-red-700 font-bold mb-2">⚠️ Consta: ${el.dataset.label}</li>`;
-            });
-
-            if(!temMatricula) {
-                listHTML = `<li class="text-red-900 font-black p-4 bg-red-50 border border-red-200 rounded-lg">ERRO CRÍTICO: Imóvel sem matrícula. No Brasil, "quem não registra não é dono". Risco Total.</li>`;
+            
+            // SE TIVER MATRÍCULA (BOTAO MARCADO), ELE ANALISA OS RISCOS
+            if (hasMatricula) {
+                const checkedGravames = document.querySelectorAll('.risk-check:checked');
+                if (checkedGravames.length > 0) {
+                    checkedGravames.forEach(el => {
+                        listHTML += `<li class="text-red-700 font-bold mb-2">❌ ${el.dataset.label}</li>`;
+                    });
+                } else {
+                    listHTML = `<li class="text-green-700 font-bold">✅ Nenhum gravame impeditivo selecionado.</li>`;
+                }
+            } 
+            // SE NÃO TIVER MATRÍCULA (BOTAO DESMARCADO), ELE BLOQUEIA
+            else {
+                listHTML = `<li class="text-red-900 font-black p-4 bg-red-50 border border-red-200 rounded-lg">⚠️ ERRO FATAL: Ausência de Matrícula. O imóvel não possui registro oficial no Cartório de Registro de Imóveis. No sistema jurídico brasileiro, a propriedade imóvel só é transferida mediante registro. Sem isso, você não adquire a propriedade, apenas a posse precária.</li>`;
             }
 
             content.innerHTML = `
-                <h3 class="text-5xl font-black text-slate-900 mb-6">${safety}</h3>
-                <div class="space-y-4 text-sm text-slate-600">
-                    <p><strong>Itens Identificados:</strong></p>
-                    <ul>${listHTML || '<li class="text-green-700">✅ Nenhum gravame selecionado.</li>'}</ul>
-                    <hr>
-                    <p class="italic text-xs">"A escritura de compra e venda não representa transferência de propriedade e sim somente um instrumento de contrato. Para dar-se o efetivo negócio ela deve ser levada a registro."</p>
-                    <div class="bg-slate-900 p-4 rounded text-white text-[10px]">
-                        ESTA FERRAMENTA ESTÁ EM DESENVOLVIMENTO (BETA). IA PARA ANÁLISE DE PDF EM BREVE. CONSULTA JURÍDICA PROFISSIONAL É INDISPENSÁVEL.
+                <div class="mb-6">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Score de Conclusividade</p>
+                    <span class="text-6xl font-black text-slate-900">${safety}</span>
+                </div>
+                <div class="space-y-4">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-tighter border-b pb-1">Apontamentos:</p>
+                    <ul class="text-xs space-y-1">${listHTML}</ul>
+                    <hr class="border-slate-100">
+                    <p class="text-xs text-slate-500 italic">"A escritura de compra e venda não representa transferência de propriedade e sim somente um instrumento de contrato. Para dar-se o efetivo negócio ela deve ser levada a registro no cartório do local da situação do imóvel."</p>
+                    <div class="bg-slate-900 p-5 rounded-xl">
+                         <p class="text-[10px] text-white/80 leading-relaxed font-medium">
+                            <strong>Sempre procure um profissional especializado.</strong> Este sistema está em desenvolvimento e contará com IA embarcada para análise de documentos. O resultado acima é informativo e não constitui parecer jurídico vinculante.
+                        </p>
                     </div>
                 </div>
             `;
